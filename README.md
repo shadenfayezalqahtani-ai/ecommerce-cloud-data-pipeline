@@ -17,7 +17,7 @@ This project serves as an end-to-end middleware data integration pipeline. It ex
 import requests
 import pandas as pd
 
-url = "[https://fakestoreapi.com/products](https://fakestoreapi.com/products)"
+url = "https://fakestoreapi.com/products"
 response = requests.get(url)
 if response.status_code == 200:
     df = pd.DataFrame(response.json())
