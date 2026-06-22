@@ -47,3 +47,10 @@ JOIN dim_products p ON f.product_id = p.product_id
 JOIN dim_categories c ON f.category_id = c.category_id
 GROUP BY c.category_name;
 4. Output SummaryProduct CategoryTotal OrdersTotal Volume SoldGross RevenueRevenue Performance Rankmen's clothing420$744.781jewelry11$695.002
+
+## Future Production Scalability & Enterprise Roadblocks
+While this prototype successfully demonstrates core ETL middleware orchestration and relational modeling using a REST API mock layer, scaling this architecture to an enterprise production environment (e.g., SAP ERP or Oracle Solutions) requires addressing the following engineering constraints:
+
+1. **Authentication Encryption:** Transitioning from open endpoints to enterprise OAuth2.0 or secure API key rotation managed via Cloud Secret Managers (e.g., AWS Secrets Manager or HashiCorp Vault) rather than hardcoded string parameters.
+2. **Idempotency & Parallelization:** Implementing ingestion checkpoints to ensure network interruptions do not cause duplicate transaction entries in the `fact_sales` ledger.
+3. **Storage Tiering:** Migrating the local in-memory DB configuration to a dedicated cloud data warehouse solution (e.g., Snowflake, BigQuery) to partition historical logs effectively.
