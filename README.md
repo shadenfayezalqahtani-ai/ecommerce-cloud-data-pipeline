@@ -1,7 +1,7 @@
-Markdown# API-Driven Sales Analytics Platform & Relational Data Warehouse
+# API-Driven Sales Analytics Platform & Relational Data Warehouse
 
 ## Project Overview
-This project serves as an end-to-end middleware data integration pipeline. It extracts raw transactional, product, and inventory records from a live e-commerce ERP system API, transforms and cleans the unstructured payloads using Python, architectures a normalized Relational Data Warehouse (Star Schema), and executes analytical window functions to rank business performance.
+This project implements a lightweight ETL (Extract-Transform-Load) data pipeline designed to ingest mock retail data via a REST API, structure it into a relational model, and run business intelligence queries. It extracts transactional, product, and inventory records from a live e-commerce API, transforms and cleans the unstructured payloads using Python, architectures a normalized Relational Data Warehouse (Star Schema), and executes analytical window functions to rank business performance.
 
 ## System Architecture
 * **Data Extraction:** Middleware ingestion via Python `requests` connecting to live REST API endpoints.
@@ -17,7 +17,7 @@ This project serves as an end-to-end middleware data integration pipeline. It ex
 import requests
 import pandas as pd
 
-url = "https://fakestoreapi.com/products"
+url = "[https://fakestoreapi.com/products](https://fakestoreapi.com/products)"
 response = requests.get(url)
 if response.status_code == 200:
     df = pd.DataFrame(response.json())
@@ -36,7 +36,7 @@ CREATE TABLE fact_sales (
     total_revenue REAL,
     FOREIGN KEY (product_id) REFERENCES dim_products(product_id)
 );
-3. Advanced Enterprise Query & Calculated Business MetricsSQLSELECT 
+3. Advanced Query & Calculated Business MetricsSQLSELECT 
     c.category_name AS [Product Category],
     COUNT(f.transaction_id) AS [Total Orders],
     SUM(f.units_sold) AS [Total Volume Sold],
@@ -46,11 +46,7 @@ FROM fact_sales f
 JOIN dim_products p ON f.product_id = p.product_id
 JOIN dim_categories c ON f.category_id = c.category_id
 GROUP BY c.category_name;
-4. Output SummaryProduct CategoryTotal OrdersTotal Volume SoldGross RevenueRevenue Performance Rankmen's clothing420$744.781jewelry11$695.002
-
-## Future Production Scalability & Enterprise Roadblocks
-While this prototype successfully demonstrates core ETL middleware orchestration and relational modeling using a REST API mock layer, scaling this architecture to an enterprise production environment (e.g., SAP ERP or Oracle Solutions) requires addressing the following engineering constraints:
-
-1. **Authentication Encryption:** Transitioning from open endpoints to enterprise OAuth2.0 or secure API key rotation managed via Cloud Secret Managers (e.g., AWS Secrets Manager or HashiCorp Vault) rather than hardcoded string parameters.
-2. **Idempotency & Parallelization:** Implementing ingestion checkpoints to ensure network interruptions do not cause duplicate transaction entries in the `fact_sales` ledger.
-3. **Storage Tiering:** Migrating the local in-memory DB configuration to a dedicated cloud data warehouse solution (e.g., Snowflake, BigQuery) to partition historical logs effectively.
+4. Output SummaryProduct CategoryTotal OrdersTotal Volume SoldGross RevenueRevenue Performance Rankmen's clothing420$744.781jewelry11$695.002📊 Business Intelligence Layer (Power BI Semantic Blueprint)To close the loop between data engineering and executive decision-making, the normalized Star Schema is mapped directly to a business intelligence semantic layer using a classic Star Schema configuration (One-to-Many 1:N unidirectional filtering).1. Core DAX Measures (Calculated Metrics)To ensure dynamic, high-performance calculations across executive dashboard filter contexts, the following enterprise DAX expressions were modeled:Total Revenue Invoiced:Code snippetTotal Revenue = SUM(fact_sales[total_revenue])
+Average Order Value (AOV):Code snippetAverage Order Value = DIVIDE([Total Revenue], COUNT(fact_sales[transaction_id]), 0)
+Total Units Distributed:Code snippetUnits Sold = SUM(fact_sales[units_sold])
+2. Executive Dashboard Interface Design BlueprintThe UI/UX matrix is architected to prioritize high-level operational performance and systemic data health for corporate leadership teams:High-Impact KPIs (Top Ribbon Cards):Gross Revenue Generated: Dynamically reflecting total transactional values ($1,439.78 across current ingestion batches).Average Basket Value: Tracking customer purchasing strength.Total Order Volume: Real-time throughput monitoring of completed sales transactions.Core Visualizations:Category Performance Matrix (Bar Chart): Plots dim_categories[category_name] against [Total Revenue] to instantly pinpoint high-value verticals vs. lagging product categories.Data Ingestion Audit Trail (Grid View): Displays fact_sales[ingestion_timestamp] to allow system administrators to audit exact system processing times and ensure pipeline latency remains low.🛠️ Future Production Scalability & Enterprise RoadblocksBecause this platform was built as an architectural prototype using a lightweight public mock API (fakestoreapi.com), scaling this system to a Tier-1 production environment (such as an SAP ERP or Oracle Data Cloud at an enterprise level) would require addressing the following system constraints:Enterprise Authentication: Transitioning from an open API endpoint to secure OAuth 2.0 protocols or Mutual TLS (mTLS), managing access keys securely through cloud key vaults rather than clear-text configuration parameters.Idempotency & Data Lineage: Implementing unique transaction IDs and logging checkpoints to guarantee that if the pipeline network crashes midway and restarts, it does not write duplicate duplicate transactions into the data warehouse layer.Robust Error Handling: Replacing basic status check constraints with comprehensive conditional validation blocks, data type exception catching, and automated webhook alerts routed to IT operations management tools.
