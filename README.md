@@ -3,15 +3,20 @@
 ## Project Overview
 This project implements a lightweight ETL (Extract-Transform-Load) data pipeline designed to ingest mock retail data via a REST API, structure it into a relational model, and run business intelligence queries. It extracts transactional, product, and inventory records from a live e-commerce API, transforms and cleans the unstructured payloads using Python, architectures a normalized Relational Data Warehouse (Star Schema), and executes analytical window functions to rank business performance.
 
+---
+
 ## System Architecture
 * **Data Extraction:** Middleware ingestion via Python `requests` connecting to live REST API endpoints.
 * **Data Processing:** Automated schema formatting, currency rounding, missing variable handling, and ledger ingestion timestamps via `pandas`.
 * **Data Warehouse Layer:** Optimized SQL Star Schema partitioning data into relational Fact and Dimension tables for maximum query efficiency.
 * **Analytics Layer:** Complex multi-table `JOIN` aggregations and analytical window functions (`RANK() OVER`).
 
+---
+
 ## Core Code Artifacts
 
 ### 1. Ingestion Engine (Python Extract-Transform-Load)
+
 ```python
 # Automated API extraction and transformation layer
 import requests
@@ -19,9 +24,14 @@ import pandas as pd
 
 url = "[https://fakestoreapi.com/products](https://fakestoreapi.com/products)"
 response = requests.get(url)
+
 if response.status_code == 200:
     df = pd.DataFrame(response.json())
     df['price'] = df['price'].astype(float).round(2)
+
+
+2)  Data Warehouse Schema (SQL DDL)
+
 CREATE TABLE dim_products (
     product_id INTEGER PRIMARY KEY,
     product_title TEXT NOT NULL,
@@ -36,6 +46,9 @@ CREATE TABLE fact_sales (
     total_revenue REAL,
     FOREIGN KEY (product_id) REFERENCES dim_products(product_id)
 );
+
+3) Advanced Query & Calculated Business Metrics
+
 SELECT 
     c.category_name AS [Product Category],
     COUNT(f.transaction_id) AS [Total Orders],
@@ -47,50 +60,94 @@ JOIN dim_products p ON f.product_id = p.product_id
 JOIN dim_categories c ON f.category_id = c.category_id
 GROUP BY c.category_name;
 
-Product Category,Total Orders,Total Volume Sold,Gross Revenue,Revenue Performance Rank
-men's clothing,42,115,"$3,240.50",1
-jewelry,12,14,"$1,180.00",2
 
-Business Intelligence Layer (Power BI Semantic Blueprint)
-To close the loop between data engineering and executive decision-making, the normalized Star Schema is mapped directly to a business intelligence semantic layer using a classic Star Schema configuration (One-to-Many 1:N unidirectional filtering).
+4)  Output Summary
 
-1. Core DAX Measures (Calculated Metrics)
-To ensure dynamic, high-performance calculations across executive dashboard filter contexts, the following enterprise DAX expressions were modeled:
+| Product Category | Total Orders | Total Volume Sold | Gross Revenue | Revenue Performance Rank |
+|-----------------|-------------|------------------|--------------|-------------------------|
+| Men's Clothing  | 42          | 115              | $3,240.50    | 1 |
+| Jewelry         | 12          | 14               | $1,180.00    | 2 |
 
-Total Revenue Invoiced:
 
-Code snippet
+ 📊 Business Intelligence Layer (Power BI)
+
+The normalized Star Schema was designed to support business intelligence reporting through a Power BI semantic model using standard one-to-many relationships between fact and dimension tables.
+
+### Key Business Metrics (DAX)
+
+#### Total Revenue
+
+```DAX
 Total Revenue = SUM(fact_sales[total_revenue])
-Average Order Value (AOV):
+```
 
-Code snippet
+#### Average Order Value (AOV)
+
+```DAX
 Average Order Value = DIVIDE([Total Revenue], COUNT(fact_sales[transaction_id]), 0)
-Total Units Distributed:
+```
 
-Code snippet
+#### Total Units Sold
+
+```DAX
 Units Sold = SUM(fact_sales[units_sold])
-2. Executive Dashboard Interface Design Blueprint
-The UI/UX matrix is architected to prioritize high-level operational performance and systemic data health for corporate leadership teams:
+```
 
-High-Impact KPIs (Top Ribbon Cards):
+---
 
-Gross Revenue Generated: Dynamically reflecting total transactional values ($4,420.50 across current ingestion batches).
+## 📈 Executive Dashboard
 
-Average Basket Value (AOV): Tracking customer purchasing strength ($81.86 average order size).
+The Power BI dashboard provides a high-level view of sales performance and data pipeline activity.
 
-Total Order Volume: Real-time throughput monitoring of completed sales transactions (54 total orders processed).
+### KPI Cards
 
-Core Visualizations:
+| Metric                    | Value     |
+| ------------------------- | --------- |
+| Gross Revenue             | $4,420.50 |
+| Average Order Value (AOV) | $81.86    |
+| Total Orders Processed    | 54        |
 
-Category Performance Matrix (Bar Chart): Plots dim_categories[category_name] against [Total Revenue] to instantly pinpoint high-value verticals vs. lagging product categories.
+### Visualizations
 
-Data Ingestion Audit Trail (Grid View): Displays fact_sales[ingestion_timestamp] to allow system administrators to audit exact system processing times and ensure pipeline latency remains low.
+#### Category Revenue Performance
 
-🛠️ Future Production Scalability & Enterprise Roadblocks
-Because this platform was built as an architectural prototype using a lightweight public mock API (fakestoreapi.com), scaling this system to a Tier-1 production environment (such as an SAP ERP or Oracle Data Cloud at an enterprise level) would require addressing the following system constraints:
+Bar chart comparing product categories by total revenue, helping identify top-performing and underperforming segments.
 
-Enterprise Authentication: Transitioning from an open API endpoint to secure OAuth 2.0 protocols or Mutual TLS (mTLS), managing access keys securely through cloud key vaults rather than clear-text configuration parameters.
+#### Data Ingestion Monitoring
 
-Idempotency & Data Lineage: Implementing unique transaction IDs and logging checkpoints to guarantee that if the pipeline network crashes midway and restarts, it does not write duplicate transactions into the data warehouse layer.
+Table showing ingestion timestamps for each batch load, enabling validation of pipeline execution and data freshness.
 
-Robust Error Handling: Replacing basic status check constraints with comprehensive conditional validation blocks, data type exception catching, and automated webhook alerts routed to IT operations management tools.
+---
+
+## 🛠️ Production Scalability Considerations
+
+This project uses a public mock API (`fakestoreapi.com`) as a data source. For deployment in an enterprise environment, several enhancements would be required:
+
+### Security & Authentication
+
+* Implement OAuth 2.0 or mTLS authentication.
+* Store credentials securely using cloud-based secret management services.
+
+### Data Reliability
+
+* Introduce idempotent processing to prevent duplicate records.
+* Maintain transaction lineage and checkpoint logging for recovery after failures.
+
+### Error Handling & Monitoring
+
+* Add comprehensive exception handling and data validation.
+* Integrate automated alerting and monitoring for pipeline failures and data quality issues.
+
+---
+
+### Technologies Used
+
+* Python
+* Pandas
+* REST APIs
+* SQL
+* PostgreSQL / Data Warehouse Design
+* Power BI
+* DAX
+* Star Schema Modeling
+* ETL/Data Engineering
