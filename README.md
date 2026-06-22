@@ -1,4 +1,4 @@
-Markdown# Enterprise ERP Integration: Cloud-Native Data Pipeline & Analytics Engine
+Markdown# API-Driven Sales Analytics Platform & Relational Data Warehouse
 
 ## Project Overview
 This project serves as an end-to-end middleware data integration pipeline. It extracts raw transactional, product, and inventory records from a live e-commerce ERP system API, transforms and cleans the unstructured payloads using Python, architectures a normalized Relational Data Warehouse (Star Schema), and executes analytical window functions to rank business performance.
