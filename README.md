@@ -1,37 +1,84 @@
 # API-Driven Sales Analytics Platform & Relational Data Warehouse
 
 ## Project Overview
-This project implements a lightweight ETL (Extract-Transform-Load) data pipeline designed to ingest mock retail data via a REST API, structure it into a relational model, and run business intelligence queries. It extracts transactional, product, and inventory records from a live e-commerce API, transforms and cleans the unstructured payloads using Python, architectures a normalized Relational Data Warehouse (Star Schema), and executes analytical window functions to rank business performance.
+
+This project demonstrates an end-to-end analytics workflow that extracts product data from a REST API, transforms it using Python, stores it in a relational star schema, and analyzes business performance using SQL and Power BI.
+
+The objective was to simulate a simplified retail analytics pipeline by combining data engineering fundamentals with business intelligence reporting. The project covers API integration, data transformation, dimensional modeling, SQL analytics, and interactive dashboard development.
 
 ---
 
-## System Architecture
-* **Data Extraction:** Middleware ingestion via Python `requests` connecting to live REST API endpoints.
-* **Data Processing:** Automated schema formatting, currency rounding, missing variable handling, and ledger ingestion timestamps via `pandas`.
-* **Data Warehouse Layer:** Optimized SQL Star Schema partitioning data into relational Fact and Dimension tables for maximum query efficiency.
-* **Analytics Layer:** Complex multi-table `JOIN` aggregations and analytical window functions (`RANK() OVER`).
+# Architecture
+
+The project follows a simple ETL (Extract, Transform, Load) workflow.
+
+### 1. Data Extraction
+
+Product data is retrieved from the Fake Store REST API using Python's `requests` library.
+
+### 2. Data Transformation
+
+The extracted JSON data is converted into tabular format using Pandas. Basic cleaning and preparation include:
+
+* Converting data types
+* Standardizing numeric values
+* Handling missing values where appropriate
+* Recording ingestion timestamps
+
+### 3. Data Warehouse
+
+The processed data is organized into a relational star schema consisting of fact and dimension tables.
+
+The schema separates transactional data from descriptive attributes to support analytical queries and reporting.
+
+### 4. Analytics
+
+SQL aggregation, joins, and window functions are used to calculate business metrics such as:
+
+* Revenue by product category
+* Order volume
+* Units sold
+* Category performance ranking
+
+### 5. Business Intelligence
+
+The warehouse is connected to Power BI to create an executive dashboard that summarizes sales performance using KPI cards and interactive visualizations.
 
 ---
 
-## Core Code Artifacts
+# Technologies Used
 
-### 1. Ingestion Engine (Python Extract-Transform-Load)
+* Python
+* Pandas
+* REST API
+* SQL
+* PostgreSQL
+* Power BI
+* DAX
+* Star Schema Data Modeling
+
+---
+
+# Data Extraction (Python)
 
 ```python
-# Automated API extraction and transformation layer
 import requests
 import pandas as pd
 
-url = "[https://fakestoreapi.com/products](https://fakestoreapi.com/products)"
+url = "https://fakestoreapi.com/products"
+
 response = requests.get(url)
 
 if response.status_code == 200:
     df = pd.DataFrame(response.json())
-    df['price'] = df['price'].astype(float).round(2)
+    df["price"] = df["price"].astype(float).round(2)
+```
 
+---
 
-2)  Data Warehouse Schema (SQL DDL)
+# Data Warehouse Schema
 
+```sql
 CREATE TABLE dim_products (
     product_id INTEGER PRIMARY KEY,
     product_title TEXT NOT NULL,
@@ -46,108 +93,102 @@ CREATE TABLE fact_sales (
     total_revenue REAL,
     FOREIGN KEY (product_id) REFERENCES dim_products(product_id)
 );
+```
 
-3) Advanced Query & Calculated Business Metrics
+The warehouse follows a star schema design, where dimension tables store descriptive information and the fact table stores measurable business events.
 
-SELECT 
+---
+
+# SQL Analytics
+
+Business metrics are calculated using SQL joins, aggregation functions, and window functions.
+
+```sql
+SELECT
     c.category_name AS [Product Category],
     COUNT(f.transaction_id) AS [Total Orders],
     SUM(f.units_sold) AS [Total Volume Sold],
     ROUND(SUM(f.total_revenue), 2) AS [Gross Revenue],
-    RANK() OVER (ORDER BY SUM(f.total_revenue) DESC) AS [Revenue Performance Rank]
+    RANK() OVER (
+        ORDER BY SUM(f.total_revenue) DESC
+    ) AS [Revenue Performance Rank]
 FROM fact_sales f
-JOIN dim_products p ON f.product_id = p.product_id
-JOIN dim_categories c ON f.category_id = c.category_id
+JOIN dim_products p
+    ON f.product_id = p.product_id
+JOIN dim_categories c
+    ON f.category_id = c.category_id
 GROUP BY c.category_name;
-
-
-4)  Output Summary
-
-| Product Category | Total Orders | Total Volume Sold | Gross Revenue | Revenue Performance Rank |
-|-----------------|-------------|------------------|--------------|-------------------------|
-| Men's Clothing  | 42          | 115              | $3,240.50    | 1 |
-| Jewelry         | 12          | 14               | $1,180.00    | 2 |
-
-
- 📊 Business Intelligence Layer (Power BI)
-
-The normalized Star Schema was designed to support business intelligence reporting through a Power BI semantic model using standard one-to-many relationships between fact and dimension tables.
-
-### Key Business Metrics (DAX)
-
-#### Total Revenue
-
-```DAX
-Total Revenue = SUM(fact_sales[total_revenue])
 ```
 
-#### Average Order Value (AOV)
+Example output:
 
-```DAX
-Average Order Value = DIVIDE([Total Revenue], COUNT(fact_sales[transaction_id]), 0)
+| Product Category | Total Orders | Total Volume Sold | Gross Revenue | Revenue Rank |
+| ---------------- | ------------ | ----------------- | ------------- | ------------ |
+| Men's Clothing   | 42           | 115               | $3,240.50     | 1            |
+| Jewelry          | 12           | 14                | $1,180.00     | 2            |
+
+---
+
+# Power BI Dashboard
+
+The Power BI report connects directly to the star schema and presents key business metrics through interactive visuals.
+
+### KPIs
+
+| Metric              |     Value |
+| ------------------- | --------: |
+| Gross Revenue       | $4,420.50 |
+| Average Order Value |    $81.86 |
+| Total Orders        |        54 |
+
+### Dashboard Features
+
+* Revenue by product category
+* KPI summary cards
+* Sales ranking by category
+* Data ingestion timestamp monitoring
+
+---
+
+# Project Structure
+
 ```
-
-#### Total Units Sold
-
-```DAX
-Units Sold = SUM(fact_sales[units_sold])
+project/
+│
+├── data/
+├── sql/
+├── notebooks/
+├── powerbi/
+├── screenshots/
+├── README.md
+└── requirements.txt
 ```
 
 ---
 
-## 📈 Executive Dashboard
+# Future Improvements
 
-The Power BI dashboard provides a high-level view of sales performance and data pipeline activity.
+This project is intentionally lightweight and designed for learning purposes. Possible enhancements include:
 
-### KPI Cards
-
-| Metric                    | Value     |
-| ------------------------- | --------- |
-| Gross Revenue             | $4,420.50 |
-| Average Order Value (AOV) | $81.86    |
-| Total Orders Processed    | 54        |
-
-### Visualizations
-
-#### Category Revenue Performance
-
-Bar chart comparing product categories by total revenue, helping identify top-performing and underperforming segments.
-
-#### Data Ingestion Monitoring
-
-Table showing ingestion timestamps for each batch load, enabling validation of pipeline execution and data freshness.
+* Incremental data loading
+* Scheduled ETL execution
+* Logging and exception handling
+* Automated data quality validation
+* Docker containerization
+* Cloud deployment
+* Authentication for secured APIs
 
 ---
 
-## 🛠️ Production Scalability Considerations
+# Skills Demonstrated
 
-This project uses a public mock API (`fakestoreapi.com`) as a data source. For deployment in an enterprise environment, several enhancements would be required:
-
-### Security & Authentication
-
-* Implement OAuth 2.0 or mTLS authentication.
-* Store credentials securely using cloud-based secret management services.
-
-### Data Reliability
-
-* Introduce idempotent processing to prevent duplicate records.
-* Maintain transaction lineage and checkpoint logging for recovery after failures.
-
-### Error Handling & Monitoring
-
-* Add comprehensive exception handling and data validation.
-* Integrate automated alerting and monitoring for pipeline failures and data quality issues.
-
----
-
-### Technologies Used
-
-* Python
-* Pandas
-* REST APIs
-* SQL
-* PostgreSQL / Data Warehouse Design
-* Power BI
-* DAX
-* Star Schema Modeling
-* ETL/Data Engineering
+* REST API integration
+* Python data processing
+* Data cleaning with Pandas
+* Relational database design
+* Star schema modeling
+* SQL analytics
+* Window functions
+* Business intelligence reporting
+* Power BI dashboard development
+* DAX measures
